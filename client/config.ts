@@ -92,10 +92,9 @@ export type ConfigWithDefaults = Config &
     Pick<Config, "storage" | "crypto" | "fetch" | "location" | "history">
   >;
 
-let config_: ConfigWithDefaults | undefined = undefined;
 export function configure(config?: Config) {
   if (config) {
-    config_ = {
+    const config_: ConfigWithDefaults = {
       ...config,
       crypto: config.crypto ?? Defaults.crypto,
       storage: config.storage ?? Defaults.storage,
@@ -104,12 +103,28 @@ export function configure(config?: Config) {
       history: config.history ?? Defaults.history,
     };
     config_.debug?.("Configuration loaded:", config);
+    return config_;
   } else {
-    if (!config_) {
-      throw new Error("Call configure(config) first");
+    const myConfig: Config = {
+      userPoolId: process.env.COGNITO_USER_POOL_ID ?? '',
+      clientId: process.env.COGNITO_USER_POOL_CLIENT_ID ?? '',
+      cognitoIdpEndpoint: process.env.AWS_REGION ?? '',
+      fido2: {
+        baseUrl: process.env.FIDO2_API_URL ?? '',
+        authenticatorSelection: {
+          userVerification: 'required'
+        }
+      },
     }
+    return {
+      ...myConfig,
+      crypto: myConfig.crypto ?? Defaults.crypto,
+      storage: myConfig.storage ?? Defaults.storage,
+      fetch: myConfig.fetch ?? Defaults.fetch,
+      location: myConfig.location ?? Defaults.location,
+      history: myConfig.history ?? Defaults.history,
+    };
   }
-  return config_;
 }
 
 type Maybe<T> = T | undefined | null;
